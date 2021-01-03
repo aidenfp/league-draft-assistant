@@ -121,10 +121,8 @@ def make_select_champ(champ, all_picks, all_portraits, update):
 
 
 def predict(blue, red):
-    blue_team = [pick for pick in blue]
-    red_team = [pick for pick in red]
     cs = champSelect()
-    cs.load(blue=blue_team, red=red_team)
+    cs.load(blue=blue, red=red)
     print(cs.predict())
     return cs.predict()
 

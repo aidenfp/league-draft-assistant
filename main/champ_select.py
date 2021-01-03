@@ -91,9 +91,9 @@ class champSelect:
             while not update:
                 update = self.pick(input('{}{}: '.format(side, r + 1)), side)
 
-    def predict(self):
+    def predict(self, disp=True):
         if self.model:
-            print('Predicting: ', self.picks)
+            if disp: print('Predicting: ', self.picks)
             blue_vec = champs_to_vec(self.picks['B'])
             red_vec = champs_to_vec(self.picks['R'])
             x_vec = np.vstack((blue_vec, red_vec))

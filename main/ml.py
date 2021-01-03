@@ -115,6 +115,16 @@ def champs_to_vec(champ_list):
     return np.isin(champs, champ_list).astype(dtype=np.uint8)
 
 
+# takes in column vector of 2*num_champs and returns two lists corresponding to the selected champions for each team
+# INCOMPLETE
+def vec_to_champs(vector):
+    blue = vector[:num_champs, :]
+    red = vector[num_champs:, :]
+    blue_inds = np.argmax()
+    red_inds = np.argmax()
+
+
+# pull match data from database and converts to torch tensors
 def db_to_tensor(db):
     conn = sql.connect(db)
     c = conn.cursor()
