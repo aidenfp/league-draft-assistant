@@ -11,7 +11,8 @@ from data import num_champs, champs
 
 device = t.device("cuda:0" if t.cuda.is_available() else "cpu")
 print('Device: ', device)
-t.cuda.device(device)
+if device == t.device("cuda:0"):
+    t.cuda.device(device)
 
 model_arch = OrderedDict([('lin1', nn.Linear(2 * num_champs, 232)),
                         ('relu1', nn.ReLU()),
