@@ -67,38 +67,39 @@ def collect_matches(initial_summoner_name, match_db, patch, lam=50):
     c = conn.cursor()
     try:
         while unpulled_summoner_ids:
-	    if len(pulled_match_ids) >= lam:
-	        break
-	    # Get a random summoner from our list of unpulled summoners and pull their match history
-	    try:
+            if len(pulled_match_ids) >= lam:
+                break
+            # Get a random summoner from our list of unpulled summoners and pull their match history
+            try:
                 new_summoner_id = random.choice(unpulled_summoner_ids)
-	        new_summoner = cass.Summoner(id=new_summoner_id, region=region)
-	        matches = filter_match_history(new_summoner, patch)
-	        unpulled_match_ids.update([match.id for match in matches])
-	    except Exception as e:
+                new_summoner = cass.Summoner(id=new_summoner_id, region=region)
+                matches = filter_match_history(new_summoner, patch)
+                unpulled_match_ids.update([match.id for match in matches])
+            except Exception as e:
                 print("Riot API broke when pulling new summoner, going to next iteration")
                 print(e)
-	    unpulled_summoner_ids.remove(new_summoner_id)
-	    pulled_summoner_ids.add(new_summoner_id)
+            unpulled_summoner_ids.remove(new_summoner_id)
+            pulled_summoner_ids.add(new_summoner_id)
 
-	    while unpulled_match_ids:
-	        if len(pulled_match_ids) >= lam:
-	            break
-	        # Get a random match from our list of matches
-		try:
-	            new_match_id = random.choice(unpulled_match_ids)
-	            new_match = cass.Match(id=new_match_id, region=region)
-	            print('Progress: {}%'.format(count / lam * 100))
-	            add_to_db(c, get_match_info(new_match.blue_team.win, new_match.blue_team, new_match.red_team, patch))
-		    count += 1
-	            for participant in new_match.participants:
-	                if participant.summoner.id not in pulled_summoner_ids and participant.summoner.id not in unpulled_summoner_ids:
-	                    unpulled_summoner_ids.add(participant.summoner.id)
-	        except Exception as e:
-		    print("Riot API broke when pulling new match, going to next iteration")
+            while unpulled_match_ids:
+                if len(pulled_match_ids) >= lam:
+                    break
+                # Get a random match from our list of matches
+                try:
+                    new_match_id = random.choice(unpulled_match_ids)
+                    new_match = cass.Match(id=new_match_id, region=region)
+                    print('Progress: {}%'.format(count / lam * 100))
+                    add_to_db(c,
+                              get_match_info(new_match.blue_team.win, new_match.blue_team, new_match.red_team, patch))
+                    count += 1
+                    for participant in new_match.participants:
+                        if participant.summoner.id not in pulled_summoner_ids and participant.summoner.id not in unpulled_summoner_ids:
+                            unpulled_summoner_ids.add(participant.summoner.id)
+                except Exception as e:
+                    print("Riot API broke when pulling new match, going to next iteration")
                     print(e)
-	        unpulled_match_ids.remove(new_match_id)
-	        pulled_match_ids.add(new_match_id)
+                unpulled_match_ids.remove(new_match_id)
+                pulled_match_ids.add(new_match_id)
         print("Finishing up")
         conn.commit()
         conn.close()
@@ -112,4 +113,3 @@ def collect_matches(initial_summoner_name, match_db, patch, lam=50):
 
 if __name__ == '__main__':
     collect_matches("Doublelift", '../db/11_3soloq.db', '11.3', 10000)
-
