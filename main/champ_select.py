@@ -26,7 +26,7 @@ class champSelect:
             try:
                 ind = self.bans[side].index('SELECT')
             except ValueError:
-                print('No more bans for %s' % ('Blue' if side == 'B' else 'Red'))
+                print(f'No more bans for {"Blue" if side == "B" else "Red"}')
                 return 0
             # get pick with error correction
             try:

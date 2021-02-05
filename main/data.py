@@ -8,7 +8,7 @@ from sortedcontainers import SortedList
 cass.set_riot_api_key("RGAPI-b00c15fc-3b61-428d-b432-327670aab001")  # This overrides the value set in your configuration/settings.
 cass.set_default_region("NA")
 cass_champs = cass.get_champions()
-champ_names = np.array([champ.name for champ in cass_champs])
+champ_names = np.array([champ.name for champ in cass_champs if not champ.name == 'Viego'])
 num_champs = champ_names.shape[0]
 champs = champ_names.reshape((num_champs, 1))
 
