@@ -1,5 +1,5 @@
 from champ_select import champSelect
-from data import cass_champs, champ_names, num_champs
+from data import champ_names
 import tkinter as tk
 import random
 from PIL import ImageTk, Image, ImageOps

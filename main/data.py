@@ -3,14 +3,21 @@ import sqlite3 as sql
 import numpy as np
 import arrow
 import random
+from PIL import Image
 from sortedcontainers import SortedList
 
-cass.set_riot_api_key("RGAPI-b00c15fc-3b61-428d-b432-327670aab001")  # This overrides the value set in your configuration/settings.
+assets_path = '../assets/champ_images'
+cass.set_riot_api_key("RGAPI-bb8e0309-666c-4862-8932-0f171119a130")
 cass.set_default_region("NA")
 cass_champs = cass.get_champions()
-champ_names = np.array([champ.name for champ in cass_champs if not champ.name == 'Viego'])
+champ_names = np.array([champ.name for champ in cass_champs])
 num_champs = champ_names.shape[0]
 champs = champ_names.reshape((num_champs, 1))
+
+
+def get_image_assets():
+    for champ in cass_champs:
+        champ.image.image.save(f'../assets/champ_images/{champ.name}.png', 'PNG')
 
 
 # from Cassiopeia examples
@@ -19,7 +26,8 @@ def filter_match_history(summoner, patch):
     end_time = patch.end
     if end_time is None:
         end_time = arrow.now()
-    match_history = cass.MatchHistory(summoner=summoner, queues={cass.Queue.ranked_solo_fives, cass.Queue.clash}, begin_time=patch.start, end_time=end_time)
+    match_history = cass.MatchHistory(summoner=summoner, queues={cass.Queue.ranked_solo_fives, cass.Queue.clash},
+                                      begin_time=patch.start, end_time=end_time)
     return match_history
 
 
@@ -33,7 +41,8 @@ def get_match_info(win, bt, rt, patch):
 
 # takes in list of Cassiopeia match class as input and appends relevant info to database
 def add_to_db(c, match_info):
-    c.execute('''CREATE TABLE IF NOT EXISTS matches_table (B_1 text, B_2 text, B_3 text, B_4 text, B_5 text, R_1 text, R_2 text, R_3 text, R_4 text, R_5 text, W text, PATCH text);''')
+    c.execute(
+        '''CREATE TABLE IF NOT EXISTS matches_table (B_1 text, B_2 text, B_3 text, B_4 text, B_5 text, R_1 text, R_2 text, R_3 text, R_4 text, R_5 text, W text, PATCH text);''')
     blue, red, winner, patch = match_info
     c.execute('''INSERT into matches_table VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
               (blue[0], blue[1], blue[2], blue[3], blue[4], red[0], red[1], red[2], red[3], red[4], winner, patch))
@@ -74,7 +83,7 @@ def collect_matches(initial_summoner_name, match_db, patch, lam=50):
             # Get a random match from our list of matches
             new_match_id = random.choice(unpulled_match_ids)
             new_match = cass.Match(id=new_match_id, region=region)
-            print('Progress: {}%'.format(count/lam*100))
+            print('Progress: {}%'.format(count / lam * 100))
             add_to_db(c, get_match_info(new_match.blue_team.win, new_match.blue_team, new_match.red_team, patch))
             count += 1
             for participant in new_match.participants:
@@ -89,7 +98,4 @@ def collect_matches(initial_summoner_name, match_db, patch, lam=50):
 
 
 if __name__ == '__main__':
-    # collect_matches("Doublelift", '../db/1025large.db', '10.25', 10000)
-    champ = cass_champs[31]
-    print(champ.name)
-    champ.image.image.show()
+    collect_matches("Doublelift", '../db/1025large.db', '11.3', 10000)
