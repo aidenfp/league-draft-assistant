@@ -167,12 +167,18 @@ def shuffle_and_split(x, y, sizes):
     return out
 
 
-if __name__ == '__main__':
-    bigX, bigY = db_to_tensor('1025large.db')
-    splits = shuffle_and_split(bigX, bigY, [9000, 1000])
+def train_and_evaluate(arch, db):
+    db_dir = '../db/'
+    fullX, fullY = db_to_tensor(db_dir + db + '.db')
+    splits = shuffle_and_split(fullX, fullY, [9000, 1000])
     largeX, largeY = splits[0]
     valX, valY = splits[1]
-    model = t.load('select_predict_updated.pkl')
-    # batch_gd(model, nn.CrossEntropyLoss(), optim.Adam, largeX, largeY, 2500)
+    model = nn.Sequential(arch)
+    batch_gd(model, nn.CrossEntropyLoss(), optim.Adam, largeX, largeY, 2500)
     print('Total evaluation: ', evaluate(model, valX, valY))
-    print('"Confident" evaluation: ', evaluate(model, valX, valY, .7))
+    if input("Save?") == 'Y':
+        t.save(model, f'../assets/pkl/{db}_model.pkl')
+
+
+if __name__ == '__main__':
+    train_and_evaluate(model_arch, '11_3soloq')
