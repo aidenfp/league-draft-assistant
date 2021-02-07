@@ -4,11 +4,14 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import sqlite3 as sql
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import pickle
 from collections import OrderedDict
 from data import num_champs, champs
 
+
+#available_gpus = [torch.cuda.device(i) for i in range(torch.cuda.device_count())]
+#print(available_gpus)
 device = t.device("cuda:0" if t.cuda.is_available() else "cpu")
 print('Device: ', device)
 if device == t.device("cuda:0"):
@@ -168,8 +171,7 @@ def shuffle_and_split(x, y, sizes):
 
 
 def train_and_evaluate(arch, db):
-    db_dir = '../db/'
-    fullX, fullY = db_to_tensor(db_dir + db + '.db')
+    fullX, fullY = db_to_tensor('../db/' + db + '.db')
     splits = shuffle_and_split(fullX, fullY, [9000, 1000])
     largeX, largeY = splits[0]
     valX, valY = splits[1]

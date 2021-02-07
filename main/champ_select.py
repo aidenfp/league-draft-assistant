@@ -11,7 +11,7 @@ class champSelect:
         self.bans = {'B': ['SELECT' for i in range(5)], 'R': ['SELECT' for i in range(5)]}
         self.model = False
         if load_model:
-            self.model = t.load('../assets/pkl/select_predict_updated.pkl', map_location=device)
+            self.model = t.load('../assets/pkl/11_3soloq_model.pkl', map_location=device)
             self.model.eval()
             self.transfer = t.load('../assets/pkl/probability_model.pkl')
             self.transfer.eval()
