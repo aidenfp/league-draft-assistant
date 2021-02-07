@@ -170,8 +170,8 @@ def shuffle_and_split(x, y, sizes):
     return out
 
 
-def train_and_evaluate(arch, db):
-    fullX, fullY = db_to_tensor('../db/' + db + '.db')
+def train_and_evaluate(arch, patch):
+    fullX, fullY = db_to_tensor(f'../db/{patch}.db')
     splits = shuffle_and_split(fullX, fullY, [9000, 1000])
     largeX, largeY = splits[0]
     valX, valY = splits[1]
@@ -179,7 +179,8 @@ def train_and_evaluate(arch, db):
     batch_gd(model, nn.CrossEntropyLoss(), optim.Adam, largeX, largeY, 2500)
     print('Total evaluation: ', evaluate(model, valX, valY))
     if input("Save?") == 'Y':
-        t.save(model, f'../assets/pkl/{db}_model.pkl')
+        t.save(model, f'../assets/models/{patch}_model.pkl')
+        pickle.dump((valX, valY), open(f'../assets/models/{patch}_validation_data.pkl', 'w'))
 
 
 if __name__ == '__main__':

@@ -5,6 +5,7 @@ import torch.optim as optim
 import numpy as np
 import pickle
 import imageio
+from ml import evaluate, db_to_tensor, shuffle_and_split
 from collections import OrderedDict
 
 
@@ -16,7 +17,7 @@ images = []
 
 
 # train regression model of network confidence to estimated win probability
-def gen_prob_model(arch, loss_fn, optimizer, xx, yy, iters=5000, lrate=1e-3):
+def gen_prob_model(arch, loss_fn, optimizer, xx, yy, name, iters=5000, lrate=1e-3):
     model = nn.Sequential(arch).cuda()
     opt = optimizer(model.parameters(), lr=lrate, momentum=.5, weight_decay=.0005)
     fig, ax = plt.subplots()
@@ -53,14 +54,16 @@ def gen_prob_model(arch, loss_fn, optimizer, xx, yy, iters=5000, lrate=1e-3):
 
             images.append(image)
 
-    imageio.mimsave('fitting_prob.gif', images, fps=10)
+    imageio.mimsave(f'../graphics/fitting_prob_{name}.gif', images, fps=10)
     return model.cpu()
 
 
-if __name__ == '__main__':
-    confs = pickle.load(open('../assets/pkl/confs.pkl', "rb"))
-    vals = pickle.load(open('../assets/pkl/vals.pkl', "rb"))
-    prob_model = gen_prob_model(conf_to_prob_arch, nn.MSELoss(), optim.SGD, confs, vals)
+def train_and_plot(patch):
+    model = t.load(f'../assets/models/{patch}_model.pkl')
+    valX, valY = pickle.load(open(f'../assets/models/{patch}_validation_data.pkl'))
+    confs = [.5 + i/100 for i in range(50)]
+    vals = [evaluate(model, valX, valY, conf) for conf in confs]
+    prob_model = gen_prob_model(conf_to_prob_arch, nn.MSELoss(), optim.SGD, confs, vals, patch)
     prob_model.eval()
     model_outs = [prob_model(t.tensor([[conf]])) for conf in confs]
     plt.cla()
@@ -68,9 +71,14 @@ if __name__ == '__main__':
     plt.plot(confs, model_outs, 'r-', label='Regression Model')
     plt.xlabel('Model Confidence')
     plt.ylabel('Estimated Probability')
-    plt.title('Fitting Probability Model')
+    plt.title(f'{patch.split("s")[0]} Soloq Probability Model')
     plt.legend(loc=2)
     plt.savefig('probmodel.png')
     plt.show()
     if input('Save?') == 'Y':
-        t.save(prob_model, 'probability_model.pkl')
+        t.save(prob_model, f'../assets/models/{patch}_probability_model.pkl')
+
+
+if __name__ == '__main__':
+    current_patch = '11_3soloq'
+    train_and_plot(current_patch)
