@@ -180,7 +180,7 @@ def train_and_evaluate(arch, patch):
     print('Total evaluation: ', evaluate(model, valX, valY))
     if input("Save?") == 'Y':
         t.save(model, f'../assets/models/{patch}_model.pkl')
-        pickle.dump((valX, valY), open(f'../assets/models/{patch}_validation_data.pkl', 'w'))
+        pickle.dump((valX, valY), open(f'../assets/models/{patch}_validation_data.pkl', 'wb'))
 
 
 if __name__ == '__main__':

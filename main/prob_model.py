@@ -60,7 +60,7 @@ def gen_prob_model(arch, loss_fn, optimizer, xx, yy, name, iters=5000, lrate=1e-
 
 def train_and_plot(patch):
     model = t.load(f'../assets/models/{patch}_model.pkl')
-    valX, valY = pickle.load(open(f'../assets/models/{patch}_validation_data.pkl'))
+    valX, valY = pickle.load(open(f'../assets/models/{patch}_validation_data.pkl', 'rb'))
     confs = [.5 + i/100 for i in range(50)]
     vals = [evaluate(model, valX, valY, conf) for conf in confs]
     prob_model = gen_prob_model(conf_to_prob_arch, nn.MSELoss(), optim.SGD, confs, vals, patch)
