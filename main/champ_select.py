@@ -13,7 +13,7 @@ class champSelect:
         if load_model:
             self.model = t.load('../assets/models/11_3soloq_model.pkl', map_location=device)
             self.model.eval()
-            self.transfer = t.load('../assets/models/probability_model.pkl')
+            self.transfer = t.load('../assets/models/11_3soloq_probability_model.pkl')
             self.transfer.eval()
 
     def in_select(self, champ):

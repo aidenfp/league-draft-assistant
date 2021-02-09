@@ -32,7 +32,8 @@ def batch_gd(network, loss_fn, optimizer, x, y, iters, lrate=1.5e-3, k=100):
 
     opt = optimizer(network.parameters(), lr=lrate)
 
-    network = network.cuda()
+    if t.cuda.is_available():
+        network = network.cuda()
     np.random.seed(0)
     num_updates = 0
     indices = np.arange(n)
@@ -41,12 +42,12 @@ def batch_gd(network, loss_fn, optimizer, x, y, iters, lrate=1.5e-3, k=100):
         np.random.shuffle(indices)
         x = x[:, indices]
         y = y[:, indices]
-        if num_updates >= iters: break
 
         xt = x[:, :k].float()
-        xt = xt.cuda()
         yt = y[:, :k][0].long()
-        yt = yt.cuda()
+        if t.cuda.is_available():
+            xt = xt.cuda()
+            yt = yt.cuda()
 
         out = network(xt.T)
         loss = loss_fn(out, yt)
@@ -66,10 +67,12 @@ def evaluate(network, x, y, conf_thresh=None):
     with t.no_grad():
         for i in range(n):
             xt = x[:, i:i + 1]
-            xt = xt.cuda()
             yt = y[:, i:i + 1]
-            yt = yt.cuda()
-            out = F.softmax(network(xt.T.float()))
+
+            if t.cuda.is_available():
+                xt = xt.cuda()
+                yt = yt.cuda()
+            out = F.softmax(network(xt.T.float()), dim=1)
             pred = t.argmax(out)
             conf = t.max(out).cpu().numpy()
             # only checks accuracy of "confident" predictions
