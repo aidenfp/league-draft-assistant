@@ -1,7 +1,7 @@
 import difflib as diff
 import numpy as np
-from ml import t, champs_to_vec, device
-from data import champ_names
+from main.ml import t, champs_to_vec, device
+from main.data import champ_names
 import torch.nn.functional as F
 
 

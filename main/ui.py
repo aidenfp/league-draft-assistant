@@ -1,5 +1,6 @@
-from champ_select import champSelect
-from data import champ_names
+from main.champ_select import champSelect
+from main.data import champ_names, get_champ_role
+from main.ai import win_deltas
 import tkinter as tk
 import random
 from PIL import ImageTk, Image, ImageOps
@@ -17,7 +18,7 @@ class champPortrait(tk.Button):
         self.name = champ
         img = Image.open('../assets/champ_images/{}.png'.format(champ)).resize((75, 75))
         self.portrait = ImageTk.PhotoImage(img)
-        self.role = ['jungle', 'top', 'support', 'bot', 'mid'][random.randint(0, 4)]
+        self.role = get_champ_role(champ)
         self.gray_portrait = ImageTk.PhotoImage(ImageOps.grayscale(img))
         tk.Button.__init__(self, master=master, relief=tk.FLAT, image=self.portrait, **kw)
         self.available = True
@@ -58,7 +59,7 @@ class playerChamp(tk.Button):
 
 
 class roleButton(tk.Button):
-    all_roles = ['top', 'jungle', 'mid', 'bot', 'support']
+    all_roles = ['TOP', 'JUNGLE', 'MIDDLE', 'BOTTOM', 'UTILITY']
 
     def __init__(self, master, role, **kw):
         self.role = role

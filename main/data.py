@@ -3,7 +3,8 @@ import sqlite3 as sql
 import numpy as np
 import arrow
 import random
-from PIL import Image
+import torch as t
+from roleidentification import pull_data
 from sortedcontainers import SortedList
 
 assets_path = '../assets/champ_images'
@@ -13,6 +14,18 @@ cass_champs = cass.get_champions()
 champ_names = np.array([champ.name for champ in cass_champs])
 num_champs = champ_names.shape[0]
 champs = champ_names.reshape((num_champs, 1))
+
+
+def id_to_name(data):
+    new_data = {}
+    for champ_id in data.keys():
+        roles = data[champ_id]
+        champ = cass.Champion(id=champ_id)
+        new_data.update({champ.name: roles})
+    return new_data
+
+
+role_data = id_to_name(pull_data())
 
 
 def get_image_assets():
@@ -46,6 +59,32 @@ def add_to_db(c, match_info):
     blue, red, winner, patch = match_info
     c.execute('''INSERT into matches_table VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
               (blue[0], blue[1], blue[2], blue[3], blue[4], red[0], red[1], red[2], red[3], red[4], winner, patch))
+
+
+# Converts list of champion names into one-hot encoded vector
+def champs_to_vec(champ_list):
+    return np.isin(champs, champ_list).astype(dtype=np.uint8)
+
+
+# pull match data from database and converts to torch tensors
+def db_to_tensor(db):
+    conn = sql.connect(db)
+    c = conn.cursor()
+    matches = c.execute('''SELECT * FROM matches_table;''').fetchall()
+    x = np.zeros((2 * num_champs, len(matches)))
+    y = np.zeros((1, len(matches)))
+    i = 0
+    for match in matches:
+        blue = [match[i] for i in range(5)]
+        red = [match[i + 5] for i in range(5)]
+        win = match[10]
+        blue_vec = champs_to_vec(blue)
+        red_vec = champs_to_vec(red)
+        x_vec = np.vstack((blue_vec, red_vec))
+        x[:, i:i + 1] = x_vec
+        y[:, i:i + 1] = 1 if win == 'B' else 0
+        i += 1
+    return t.from_numpy(x).T, t.from_numpy(y).T
 
 
 # From Cassiopeia examples
@@ -111,7 +150,16 @@ def collect_matches(initial_summoner_name, match_db, patch, db_size=50):
     print("Finishing up")
     conn.commit()
     conn.close()
-    conn.close()
+
+
+def get_champ_role(champ_name):
+    max_rate = 0
+    max_role = 'TOP'
+    for role, rate in role_data[champ_name].items():
+        if rate > max_rate:
+            max_role = role
+            max_rate = rate
+    return max_role
 
 
 if __name__ == '__main__':

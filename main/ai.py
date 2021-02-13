@@ -1,12 +1,12 @@
 import torch as t
 import numpy as np
-from ml import champs_to_vec, num_champs, device
-from data import champs, champ_names, num_champs
-from champ_select import champSelect, InSelectError
+from main.ml import device
+from main.data import champs, champ_names, num_champs, get_champ_role
+from main.champ_select import champSelect, InSelectError
 
 
-current_model = t.load('../assets/pkl/select_predict_updated.pkl', map_location=device)
-current_transfer = t.load('../assets/pkl/probability_model.pkl')
+current_model = t.load('../assets/models/11_3soloq_model.pkl', map_location=device)
+current_transfer = t.load('../assets/models/11_3soloq_probability_model.pkl')
 
 
 # computes the change in win percentage based on the initial state and the next state
@@ -66,6 +66,10 @@ def win_deltas(blue, red, active_team=None):
 
 
 class botSelect(champSelect):
+    def __init__(self):
+        champSelect.__init__(self)
+        self.roles = {'TOP': False, 'JUNGLE': False, 'MIDDLE': False, 'BOTTOM': False, 'UTILITY': False}
+
     def _ai_choose(self, team, type):
         # picks the champion with highest win delta
         if type == 'pick':
@@ -75,10 +79,16 @@ class botSelect(champSelect):
             num = 0
             while True:
                 choice = sorted_deltas[num][1]
+                role = get_champ_role(choice)
                 num += 1
-                try:
-                    return self.pick(choice, team)
-                except InSelectError:
+                if not self.roles[role]:
+                    try:
+                        if self.pick(choice, team):
+                            self.roles[role] = True
+                            return True
+                    except InSelectError:
+                        continue
+                else:
                     continue
         # bans the champion with opposing team's highest win delta
         elif type == 'ban':
@@ -94,7 +104,7 @@ class botSelect(champSelect):
                 except InSelectError:
                     continue
 
-    def vs_ai(self, ai_team='R'):
+    def vs_ai(self, ai_team):
         # Ban phase 1
         for side in ['B', 'R', 'B', 'R', 'B', 'R']:
             update = 0
@@ -133,4 +143,4 @@ class botSelect(champSelect):
 
 if __name__ == '__main__':
     select = botSelect()
-    select.vs_ai()
+    select.vs_ai('B')
