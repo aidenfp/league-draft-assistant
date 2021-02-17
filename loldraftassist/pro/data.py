@@ -6,7 +6,7 @@ import requests as r
 from loldraftassist.champ_data import num_champs, all_roles, all_champs_vec
 
 oe_db_url = 'https://oracleselixir-downloadable-match-data.s3-us-west-2.amazonaws.com' \
-            '/2021_LoL_esports_match_data_from_OraclesElixir_20210213.csv'
+            '/2021_LoL_esports_match_data_from_OraclesElixir_20210215.csv'
 assets_path = '../assets/champ_images'
 db_path = 'db/2021pro.db'
 
